@@ -10,11 +10,6 @@ import math
 import numpy as np
 
 stopwords = ['a', 'an', 'the', 'them', 'is', 'are', 'am', 'i', 'he', 'she', 'it', 'they']
-def getRelevantDocuments(queryRel, i):
-	ret = []
-	for j in range(0, len(queryRel[i])):
-		ret.append(queryRel[i][j][2])
-	return ret
 
 def remove_punctuation(data):
     symbols = "!\"#$%&()*+-./:;<=>?@[\]^_`{|}~\n"
