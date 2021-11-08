@@ -16,9 +16,8 @@ from helper import getWords
 from helper import stemming
 from helper import getQueries
 from helper import getTfIdf
-from helper import getRelevantDocuments
 from helper import getCosine
-
+from helper import getBM25
 #reading queries from Query_doc and pre-processing 
 queryList = getQueries('./AILA_2019_dataset/Query_doc.txt')
 totalQueries = len(queryList)
@@ -55,10 +54,12 @@ print("step 2 complete")
 
 docs = os.listdir("./AILA_2019_dataset/Object_casedocs")
 allwords = {}
+avgDlen = 0
 tfDocuments = {}
 total = {}
 for doc in docs:
 	content = getWords(doc)
+	avgDlen += len(content)
 	cnt = Counter(content)
 	total[doc] = len(content)
 	tfDocuments[doc] = cnt
@@ -69,6 +70,7 @@ for doc in docs:
 			allwords[word]+=1
 print("step 3 complete")
 
+avgDlen = avgDlen/len(docs)
 
 # idf : dictionary with key : word and value : idf value of that word
 idf = {}
@@ -76,7 +78,7 @@ for word in allwords:
 	idf[word] = math.log(len(docs)/allwords[word])
 
 
-# tfIdfDocs : dictionary with key: doc_name, value : tfIdf value of that document
+# tfIdfDocs : dictionary with key: doc_name, value : tfIdf value dictionary (word, float) of that document
 tfIdfDocs = {}
 for doc in docs:
 	cnt = tfDocuments[doc]
@@ -89,22 +91,22 @@ for doc in docs:
 	tfIdfDocs[doc] = tfIdf
 
 print("step 4 complete")
-exit(1)
 #got tfIdf of each document in vector form
 #find tfIdf of queries
 tfIdfQueries = {}
 for i in range(0, len(queryList)):
-	tfIdfQueries[queryList[i]] = getTfIdf(allwords, queryList[i], len(docs))
+	tfIdfQueries[i] = getTfIdf(allwords, queryList[i], len(docs))
 
 
-# # rochhio method
+# rochhio method
 # alpha = 1
-# beta = 0.75
-# gamma = 0.15
-# #Rocchio Method of Relevance Feedback
+# beta = 0.7
+# gamma = 0.1
+# # Rocchio Method of Relevance Feedback
 # newTfIdf = {}
 # for i in range(0, len(queryList)):
-# 	Dr = getRelevantDocuments(queryRel, i)
+# 	Dr = queryRel[i]
+# 	Dn = queryNonRel[i]
 # 	avgDr = {}
 # 	size = len(Dr)
 # 	for word in allwords:
@@ -114,45 +116,46 @@ for i in range(0, len(queryList)):
 # 				sum += tfIdfDocs[d][word]
 # 		avgDr[word] = (sum/size)*beta
 	
-# 	size = len(docs)-size
+# 	size = len(Dn)
 # 	avgDn = {}
 # 	for word in allwords:
 # 		sum = 0
-# 		for doc in docs:
-# 			if doc in Dr:
-# 				continue
+# 		for doc in Dn:
 # 			if word in tfIdfDocs[doc]:
 # 				sum += tfIdfDocs[doc][word]
 # 		avgDn[word] = (sum/size)*gamma
+	
 # 	newTfIdf1 = {}
 # 	for word in allwords:
 # 		newTfIdf1[word] = 0
-# 		if word in tfIdfQueries[queryList[i]]:
-# 			newTfIdf1[word] += alpha*tfIdfQueries[queryList[i]][word]
+# 		if word in tfIdfQueries[i]:
+# 			newTfIdf1[word] += alpha*tfIdfQueries[i][word]
 # 		if word in avgDr:	
 # 			newTfIdf1[word] +=avgDr[word]
 # 		if word in avgDn:
 # 			newTfIdf1[word] -= avgDn[word]
-# 	newTfIdf[queryList[i]] = newTfIdf1
+# 	newTfIdf[i] = newTfIdf1
 
-# print("step 5 complete")
+print("step 5 complete")
 
-# def compare(item1, item2):
-# 	return item1[0] < item2[0]
+#new modified tf Idf of queries created 
 
-# file.close()
-# #new modified tf Idf of queries created 
-# file = open('./output1.txt', 'w')
-# for i in range(0, len(queryList)):
-# 	newCosines = {}
-# 	Dr = getRelevantDocuments(queryRel, i)
-# 	for doc in Dr:
-# 		newCosines[doc] = getCosine(newTfIdf[queryList[i]], tfIdfDocs[doc])
-# 	l = []
-# 	for doc in newCosines:
-# 		l.append((newCosines[doc], doc))
-# 	l.sort(key = lambda x: x[0])
-# 	for j in range(0, len(l)):
-# 		file.write(str(i+1)+" Q0 "+str(l[len(l)-1-j][0])+" "+str(j+1)+" "+str(l[len(l)-1-j][1])+" runid1\n")
-# file.close()
-# print("final finished")
+
+file = open('./output1.txt', 'w')
+for i in range(0, len(queryList)):
+	
+	getResult = {}
+	for doc in docs:
+		cosineSimilarity = getCosine(tfIdfQueries[i], tfIdfDocs[doc])
+		bm25 = getBM25(tfDocuments[doc], queryList[i], avgDlen, len(docs), len(docs), allwords)
+		f = cosineSimilarity*bm25
+		getResult[doc] = f
+	
+	l = []
+	for doc in getResult:
+		l.append((getResult[doc], doc))
+	l.sort(key = lambda x: x[0])
+	for j in range(0, len(l)):
+		file.write(str(i+1)+" Q0 "+str(l[len(l)-1-j][0])+" "+str(j+1)+" "+str(l[len(l)-1-j][1])+" runid1\n")
+file.close()
+print("final finished")
