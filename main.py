@@ -114,10 +114,6 @@ for i in range(0, len(queryList)):
 	l.sort(key = lambda x: x[0])
 	for j in range(0, len(l)):
 		string = str(i+1)+" Q0 "+str(l[len(l)-1-j][0])+" "+str(j+1)+" "+l[len(l)-1-j][1]+" runid1"
-		if (l[j][1][:-4]) in queryRel[i]:
-			print("found relevant")
-			file.write(string+" relevant\n")
-		else:
-			file.write(string+"\n")
+		file.write(string+"\n")
 file.close()
 print("final finished")
