@@ -104,14 +104,18 @@ def getBM25(cntDoc, query, avgDlen, lenDoc, totalDocs, allwords):
 	for word in cnt:
 		fqD[word] = cntDoc[word]/lenDoc
 	modD = lenDoc
-	
+	k = 1.25
+	b = 0.75
 	tf = {}
 	for word in cnt:
-		tf[word] = (fqD[word]*(k+1))/(fqD[word]+k1*(1-b+b*(lenDoc/avgDlen)))
+		tf[word] = (fqD[word]*(k+1))/(fqD[word]+k*(1-b+b*(lenDoc/avgDlen)))
 
 	idf = {}
 	for word in cnt:
-		idf[word] = math.log(((totalDocs-allwords[word]+0.5)/(allwords[word]+0.5))+1)
+		nq = 0
+		if word in allwords:
+			nq = allwords[word]
+		idf[word] = math.log(((totalDocs-nq+0.5)/(nq+0.5))+1)
 
 	sum = 0
 	for word in tf:

@@ -34,14 +34,14 @@ for i in range(0, totalQueries):
 
 #filling queryRel and queryNonRel
 while(True):
-	str = file.readline()
-	if(str == ''):
+	str1 = file.readline()
+	if(str1 == ''):
 		break
-	str = str.split()
-	if(int(str[3]) == 0):
-		queryNonRel[int(str[0][6:])-1].append(str[2])
+	str1 = str1.split()
+	if(int(str1[3]) == 0):
+		queryNonRel[int(str1[0][6:])-1].append(str1[2])
 	else:
-		queryRel[int(str[0][6:])-1].append(str[2])
+		queryRel[int(str1[0][6:])-1].append(str1[2])
 file.close()
 print("step 2 complete")
 
@@ -97,50 +97,7 @@ tfIdfQueries = {}
 for i in range(0, len(queryList)):
 	tfIdfQueries[i] = getTfIdf(allwords, queryList[i], len(docs))
 
-
-# rochhio method
-# alpha = 1
-# beta = 0.7
-# gamma = 0.1
-# # Rocchio Method of Relevance Feedback
-# newTfIdf = {}
-# for i in range(0, len(queryList)):
-# 	Dr = queryRel[i]
-# 	Dn = queryNonRel[i]
-# 	avgDr = {}
-# 	size = len(Dr)
-# 	for word in allwords:
-# 		sum = 0
-# 		for d in Dr:
-# 			if(word in tfIdfDocs[d]):
-# 				sum += tfIdfDocs[d][word]
-# 		avgDr[word] = (sum/size)*beta
-	
-# 	size = len(Dn)
-# 	avgDn = {}
-# 	for word in allwords:
-# 		sum = 0
-# 		for doc in Dn:
-# 			if word in tfIdfDocs[doc]:
-# 				sum += tfIdfDocs[doc][word]
-# 		avgDn[word] = (sum/size)*gamma
-	
-# 	newTfIdf1 = {}
-# 	for word in allwords:
-# 		newTfIdf1[word] = 0
-# 		if word in tfIdfQueries[i]:
-# 			newTfIdf1[word] += alpha*tfIdfQueries[i][word]
-# 		if word in avgDr:	
-# 			newTfIdf1[word] +=avgDr[word]
-# 		if word in avgDn:
-# 			newTfIdf1[word] -= avgDn[word]
-# 	newTfIdf[i] = newTfIdf1
-
 print("step 5 complete")
-
-#new modified tf Idf of queries created 
-
-
 file = open('./output1.txt', 'w')
 for i in range(0, len(queryList)):
 	
@@ -156,6 +113,11 @@ for i in range(0, len(queryList)):
 		l.append((getResult[doc], doc))
 	l.sort(key = lambda x: x[0])
 	for j in range(0, len(l)):
-		file.write(str(i+1)+" Q0 "+str(l[len(l)-1-j][0])+" "+str(j+1)+" "+str(l[len(l)-1-j][1])+" runid1\n")
+		string = str(i+1)+" Q0 "+str(l[len(l)-1-j][0])+" "+str(j+1)+" "+l[len(l)-1-j][1]+" runid1"
+		if (l[j][1][:-4]) in queryRel[i]:
+			print("found relevant")
+			file.write(string+" relevant\n")
+		else:
+			file.write(string+"\n")
 file.close()
 print("final finished")
